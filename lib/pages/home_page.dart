@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,6 +11,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final SpeechToText _speechToText = SpeechToText();
+  final FlutterTts _flutterTts = FlutterTts();
 
   bool _speechEnabled = false;
   String _wordsSpoken = "";
@@ -45,12 +47,22 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _speakText() async {
+    await _flutterTts.speak(_wordsSpoken);
+  }
+
+  void _convertTextToSpeech(String text) async {
+    await _flutterTts.speak(text);
+  }
+
   @override
   Widget build(BuildContext context) {
+    TextEditingController textController = TextEditingController();
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.red,
-        title: Text(
+        title: const Text(
           'Speech Demo',
           style: TextStyle(
             color: Colors.white,
@@ -61,19 +73,19 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             Container(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Text(
                 _speechToText.isListening
                     ? "listening..."
                     : _speechEnabled
                         ? "Tap the microphone to start listening..."
                         : "Speech not available",
-                style: TextStyle(fontSize: 20.0),
+                style: const TextStyle(fontSize: 20.0),
               ),
             ),
             Expanded(
               child: Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Text(
                   _wordsSpoken,
                   style: const TextStyle(
@@ -90,23 +102,41 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: Text(
                   "Confidence: ${(_confidenceLevel * 100).toStringAsFixed(1)}%",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.w200,
                   ),
                 ),
-              )
+              ),
+            ElevatedButton(
+              onPressed: _speakText,
+              child: const Text('Speak Text'),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: textController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Enter text to convert to speech',
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => _convertTextToSpeech(textController.text),
+              child: const Text('Convert Text to Speech'),
+            ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _speechToText.isListening ? _stopListening : _startListening,
         tooltip: 'Listen',
+        backgroundColor: Colors.red,
         child: Icon(
           _speechToText.isNotListening ? Icons.mic_off : Icons.mic,
           color: Colors.white,
         ),
-        backgroundColor: Colors.red,
       ),
     );
   }
